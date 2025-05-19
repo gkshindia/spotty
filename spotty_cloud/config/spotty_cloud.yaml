@@ -1,0 +1,55 @@
+# SpottyCloud Configuration File
+
+system:
+  log_level: INFO
+  dashboard_port: 8080
+  data_dir: data # Relative to project root
+
+aws:
+  region: us-west-2
+  # Access keys are not stored here - use AWS CLI config, environment variables, or IAM roles
+  spot:
+    max_price_multiplier: 1.2  # Maximum price as % of on-demand price
+    instance_types:
+      cpu:
+        - c5.large
+        - t3.medium
+      gpu: 
+        - g4dn.xlarge
+        - p3.2xlarge
+      edge:
+        - t3.medium
+        - t3.small
+
+orchestrator:
+  min_instances: 3
+  max_instances: 20
+  instance_pool_size: 10
+  polling_interval: 30  # seconds
+  scaling_cooldown: 300  # seconds
+
+workloads:
+  queue_polling_interval: 15  # seconds
+  max_queue_size: 100
+  default_timeout: 3600  # 1 hour
+  default_retries: 3
+  template_dir: config/templates
+
+resilience:
+  termination_check_interval: 5  # seconds
+  backup_frequency: 60  # seconds
+  max_recovery_time: 120  # 2 minutes (as per POC requirements)
+  auto_recover: true
+  data_persistence_dir: data/persistence
+
+monitoring:
+  interval: 30  # seconds
+  metrics_enabled: true
+  alert_thresholds:
+    cpu_high: 90
+    memory_high: 85
+    disk_high: 90
+
+cost:
+  tracking_interval: 300  # 5 minutes
+  data_file: cost_data.json

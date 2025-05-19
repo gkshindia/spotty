@@ -1,0 +1,50 @@
+# Machine Learning Training Workload Template
+name: ml_training
+description: "CPU-based machine learning model training for MNIST dataset"
+version: 1.0.0
+
+# Resource requirements
+resources:
+  cpu: 4
+  memory: 8
+  gpu: 0  # CPU-only workload by default
+  storage: 10
+
+# Instance preferences
+instance:
+  preferred_type: c5.large
+  fallback_type: t3.medium
+  max_price: 0.10  # Maximum bid price for spot instance
+
+# Container configuration
+container:
+  dockerfile: Dockerfile.ml
+  entrypoint: /app/train.py
+  environment:
+    - EPOCHS=10
+    - BATCH_SIZE=64
+    - LEARNING_RATE=0.001
+
+# Default parameters
+parameters:
+  dataset: "mnist"
+  model_type: "cnn"
+  optimizer: "adam"
+  eval_fraction: 0.2
+  save_format: "h5"
+
+# Persistence configuration
+persistence:
+  input_volume: ml-datasets
+  output_volume: ml-models
+  checkpoint_frequency: 600  # Checkpoint every 10 minutes
+  recover_from_checkpoint: true
+
+# Timeout and retry settings
+timeout: 7200  # 2 hour timeout for training
+max_retries: 3
+retry_delay: 120
+
+# Resilience settings
+requires_gpu_fallback: false  # CPU-only workload
+stateless: false  # Stateful workload, needs persistence for model checkpoints

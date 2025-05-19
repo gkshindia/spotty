@@ -1,0 +1,68 @@
+# Edge Computing Workload Template
+name: edge-computing
+description: Lightweight edge computing simulation workload
+type: edge
+version: 1.0
+
+resources:
+  cpu: 2
+  memory: 4
+  gpu: 0
+  storage: 10
+
+docker:
+  image: "spotty_cloud/edge:latest"
+  dockerfile: "Dockerfile.edge"
+
+parameters:
+  - name: sensor_type
+    description: Type of sensor data to process
+    type: string
+    default: "camera"
+    options:
+      - "camera"
+      - "temperature"
+      - "motion"
+      - "audio"
+      
+  - name: processing_mode
+    description: Data processing mode
+    type: string
+    default: "realtime"
+    options:
+      - "realtime"
+      - "batch"
+      
+  - name: interval
+    description: Data collection interval (seconds)
+    type: integer
+    default: 5
+    min: 1
+    max: 60
+    
+  - name: duration
+    description: Total runtime duration (minutes)
+    type: integer
+    default: 60
+    min: 5
+    max: 1440
+
+command: >
+  python /workspace/project/workloads/scripts/edge/simulate.py
+  --sensor {sensor_type}
+  --mode {processing_mode}
+  --interval {interval}
+  --duration {duration}
+  --output /data/processed
+  
+outputs:
+  - path: /data/processed
+    description: Processed sensor data
+    
+  - path: /data/logs
+    description: Processing logs and metrics
+
+resilience:
+  checkpoint_frequency: 30  # Save checkpoint every 30 data points
+  checkpoint_path: /data/checkpoints
+  auto_resume: true

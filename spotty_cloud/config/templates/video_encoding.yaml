@@ -1,0 +1,50 @@
+# Video Encoding Workload Template
+name: video_encoding
+description: "GPU-accelerated video encoding for large video files"
+version: 1.0.0
+
+# Resource requirements
+resources:
+  cpu: 4
+  memory: 8
+  gpu: 1  # Requires GPU for hardware acceleration
+  storage: 20
+
+# Instance preferences
+instance:
+  preferred_type: g4dn.xlarge
+  fallback_type: c5.large  # Fallback to CPU-only if GPU not available
+  max_price: 0.50  # Maximum bid price for spot instance
+
+# Container configuration
+container:
+  dockerfile: Dockerfile.video
+  entrypoint: /app/encode_videos.py
+  environment:
+    - PRESET=medium
+    - CRF=22
+
+# Default parameters
+parameters:
+  input_url: ""
+  output_format: "mp4"
+  resolution: "1080p"
+  bitrate: "5000k"
+  codec: "h264"
+  sample_source: "tears_of_steel"  # Use sample video if no input URL
+
+# Persistence configuration
+persistence:
+  input_volume: input-videos
+  output_volume: encoded-videos
+  checkpoint_frequency: 300  # Checkpoint every 5 minutes
+  recover_from_checkpoint: true
+
+# Timeout and retry settings
+timeout: 3600  # 1 hour timeout for encoding
+max_retries: 2
+retry_delay: 60
+
+# Resilience settings
+requires_gpu_fallback: true  # Can fallback to CPU if needed
+stateless: false  # Stateful workload, needs persistence

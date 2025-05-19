@@ -1,0 +1,105 @@
+project:
+  name: video-encoding-project
+  syncFilters:
+    - exclude:
+        - .git/*
+        - .idea/*
+        - __pycache__/*
+        - .DS_Store
+        - output/*
+    - include:
+        - input/sample/*
+
+containers:
+  - name: encoding-container
+    projectDir: /workspace/project
+    file: docker/Dockerfile.encoding
+    ports:
+      - containerPort: 8888
+        hostPort: 8888
+    # Mount volumes to persist data
+    volumeMounts:
+      - name: workspace
+        mountPath: /workspace
+      - name: data
+        mountPath: /data
+    # Set up environment
+    commands: |
+      echo "FFmpeg container ready for video encoding tasks"
+      
+  - name: training-container
+    projectDir: /workspace/project
+    file: docker/Dockerfile.train
+    ports:
+      - containerPort: 8888
+        hostPort: 8888
+    # Mount volumes to persist data
+    volumeMounts:
+      - name: workspace
+        mountPath: /workspace
+    # Set up environment
+    commands: |
+      jupyter notebook --allow-root --ip=0.0.0.0 --no-browser
+
+instances:
+  - name: aws-gpu
+    provider: aws
+    parameters:
+      region: us-east-1  # Change to your preferred region
+      instanceType: g4dn.xlarge  # Smaller GPU instance for video encoding
+      spotInstance: true
+      maxPrice: 0.5
+      volumes:
+        - name: workspace
+          size: 10
+          mountDir: /workspace
+        - name: data
+          size: 20
+          mountDir: /data
+      docker:
+        image: nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04
+      ports: [8888]
+
+  - name: aws-cpu
+    provider: aws
+    parameters:
+      region: us-east-1  # Change to your preferred region
+      instanceType: c5.large  # Smaller CPU compute-optimized instance
+      spotInstance: true
+      maxPrice: 0.15
+      volumes:
+        - name: workspace
+          size: 10
+          mountDir: /workspace
+        - name: data
+          size: 20
+          mountDir: /data
+      ports: [8888]
+
+  - name: local
+    provider: local
+    parameters:
+      volumes:
+        - name: workspace
+          mountDir: ~/spotty-workspace
+        - name: data
+          mountDir: ~/spotty-data
+
+scripts:
+  encode:
+    description: Run video encoding batch job
+    commands: |
+      cd /workspace/project
+      python encode_videos.py
+  
+  encode-gpu:
+    description: Run video encoding with GPU acceleration
+    commands: |
+      cd /workspace/project
+      python encode_videos.py --use_gpu=True
+  
+  encode-sample:
+    description: Encode a single sample video
+    commands: |
+      cd /workspace/project
+      python encode_videos.py --input=/data/input/sample.mp4 --output=/data/output/

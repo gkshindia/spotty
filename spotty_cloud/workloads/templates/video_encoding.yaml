@@ -1,0 +1,71 @@
+# Video Encoding Workload Template
+name: video-encoding
+description: CPU-intensive video transcoding and encoding workload
+type: cpu
+version: 1.0
+
+resources:
+  cpu: 8
+  memory: 16
+  gpu: 0
+  storage: 50
+
+docker:
+  image: "spotty_cloud/encoding:latest"
+  dockerfile: "Dockerfile.encoding"
+
+parameters:
+  - name: source
+    description: Source video file or directory
+    type: string
+    required: true
+    
+  - name: target_format
+    description: Target video format
+    type: string
+    default: "mp4"
+    options:
+      - "mp4"
+      - "webm"
+      - "mkv"
+      - "avi"
+      
+  - name: resolution
+    description: Target resolution
+    type: string
+    default: "1080p"
+    options:
+      - "480p"
+      - "720p"
+      - "1080p"
+      - "4k"
+      
+  - name: codec
+    description: Video codec
+    type: string
+    default: "h264"
+    options:
+      - "h264"
+      - "h265"
+      - "vp9"
+      - "av1"
+
+command: >
+  python /workspace/project/workloads/scripts/video/encode_videos.py
+  --source {source}
+  --format {target_format}
+  --resolution {resolution}
+  --codec {codec}
+  --output /data/encoded
+  
+outputs:
+  - path: /data/encoded
+    description: Encoded video files
+    
+  - path: /data/logs
+    description: Encoding logs and stats
+
+resilience:
+  checkpoint_frequency: 5  # Save checkpoint every 5 files
+  checkpoint_path: /data/checkpoints
+  auto_resume: true

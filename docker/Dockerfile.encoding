@@ -1,0 +1,38 @@
+FROM nvidia/cuda:11.4.0-base-ubuntu20.04 AS cuda-base
+
+# Avoid prompts from apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies for FFmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    python3-pip \
+    python3-setuptools \
+    python3-dev \
+    git \
+    wget \
+    ca-certificates \
+    curl \
+    && add-apt-repository -y ppa:savoury1/ffmpeg4 \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up working directory
+WORKDIR /app
+
+# Install Python packages
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Create directories for input and output videos
+RUN mkdir -p /data/input /data/output
+
+# Set up environment
+ENV PATH="/usr/local/cuda/bin:${PATH}"
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+ENV PYTHONUNBUFFERED=1
+
+# Default command
+CMD ["python3", "/app/encode_videos.py"]

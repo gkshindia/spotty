@@ -1,0 +1,66 @@
+# ML Training Workload Template
+name: ml-training
+description: GPU-accelerated machine learning training workload
+type: gpu
+version: 1.0
+
+resources:
+  cpu: 4
+  memory: 16
+  gpu: 1
+  storage: 20
+
+docker:
+  image: "spotty_cloud/train:latest"
+  dockerfile: "Dockerfile.training"
+
+parameters:
+  - name: model_type
+    description: Type of model to train
+    type: string
+    default: "resnet50"
+    options:
+      - "resnet50"
+      - "efficientnet"
+      - "transformer"
+      
+  - name: epochs
+    description: Number of training epochs
+    type: integer
+    default: 10
+    min: 1
+    max: 100
+    
+  - name: batch_size
+    description: Training batch size
+    type: integer
+    default: 32
+    min: 1
+    max: 256
+    
+  - name: learning_rate
+    description: Learning rate for training
+    type: float
+    default: 0.001
+    min: 0.00001
+    max: 0.1
+
+command: >
+  python /workspace/project/workloads/scripts/ml/train.py
+  --model {model_type}
+  --epochs {epochs}
+  --batch-size {batch_size}
+  --learning-rate {learning_rate}
+  --output /data/models
+  
+outputs:
+  - path: /data/models
+    description: Trained model files
+    
+  - path: /data/logs
+    description: Training logs and TensorBoard data
+
+resilience:
+  checkpoint_frequency: 10  # Save checkpoint every 10 epochs
+  checkpoint_path: /data/checkpoints
+  auto_resume: true

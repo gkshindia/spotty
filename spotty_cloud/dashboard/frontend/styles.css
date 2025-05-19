@@ -1,0 +1,257 @@
+/* SpottyCloud Dashboard Styles */
+
+/* Base styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f8f9fc;
+    color: #5a5c69;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.navbar-brand i {
+    margin-right: 5px;
+}
+
+/* Content sections */
+.content-section {
+    display: none;
+    padding-bottom: 30px;
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Status Cards */
+.status-card {
+    text-align: center;
+    border-left: 4px solid #4e73df;
+    border-radius: 4px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.counter-card {
+    border-left: 4px solid #1cc88a;
+    border-radius: 4px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.savings-card {
+    border-left: 4px solid #f6c23e;
+    border-radius: 4px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.status-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.status-indicator.healthy {
+    background-color: #1cc88a;
+    box-shadow: 0 0 10px rgba(28, 200, 138, 0.5);
+}
+
+.status-indicator.degraded {
+    background-color: #f6c23e;
+    box-shadow: 0 0 10px rgba(246, 194, 62, 0.5);
+}
+
+.status-indicator.unhealthy {
+    background-color: #e74a3b;
+    box-shadow: 0 0 10px rgba(231, 74, 59, 0.5);
+}
+
+.status-text {
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4e73df;
+    margin-bottom: 15px;
+}
+
+.counter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #5a5c69;
+}
+
+.savings-percentage {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1cc88a;
+}
+
+/* Tables */
+.table-responsive {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fc;
+    border-top: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(78, 115, 223, 0.05);
+}
+
+/* Status badges */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 600;
+    border-radius: 30px;
+}
+
+.badge-running {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.badge-pending {
+    background-color: #f6c23e;
+    color: white;
+}
+
+.badge-terminated {
+    background-color: #e74a3b;
+    color: white;
+}
+
+.badge-completed {
+    background-color: #4e73df;
+    color: white;
+}
+
+.badge-failed {
+    background-color: #e74a3b;
+    color: white;
+}
+
+/* Action buttons */
+.action-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+}
+
+/* Instance details modal */
+.instance-details {
+    margin-bottom: 20px;
+}
+
+.instance-details h6 {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #4e73df;
+}
+
+.details-section {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaecf4;
+}
+
+.details-section:last-child {
+    border-bottom: none;
+}
+
+/* Progress bars */
+.progress {
+    height: 10px;
+    border-radius: 5px;
+}
+
+.progress-bar {
+    background-color: #4e73df;
+}
+
+.progress-bar.bg-success {
+    background-color: #1cc88a !important;
+}
+
+/* Charts container */
+canvas {
+    max-width: 100%;
+}
+
+/* Workload modal */
+.parameter-field {
+    margin-bottom: 10px;
+}
+
+/* Events table */
+.event-success {
+    border-left: 4px solid #1cc88a;
+}
+
+.event-warning {
+    border-left: 4px solid #f6c23e;
+}
+
+.event-danger {
+    border-left: 4px solid #e74a3b;
+}
+
+.event-info {
+    border-left: 4px solid #4e73df;
+}
+
+/* Resilience testing section */
+.form-range::-webkit-slider-thumb {
+    background: #e74a3b;
+}
+
+.form-range::-moz-range-thumb {
+    background: #e74a3b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .card-title {
+        font-size: 0.9rem;
+    }
+    
+    .counter, .savings-percentage {
+        font-size: 1.8rem;
+    }
+    
+    .status-text {
+        font-size: 1.5rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .btn-group .btn {
+        flex: 1 0 auto;
+        margin-bottom: 5px;
+    }
+}
