@@ -6,12 +6,12 @@ import time
 import queue
 from typing import Dict, Any
 
-from core.instances.spot_manager import SpotInstanceManager
-from core.resilience.recovery import RecoveryManager
-from utils.monitoring.instance_monitor import InstanceMonitor
-from utils.cost.tracker import CostTracker
-from utils.aws.credentials import AWSCredentialManager
-from workloads.runners.dispatcher import WorkloadDispatcher
+from spotty_cloud.core.instances.spot_manager import SpotInstanceManager
+from spotty_cloud.core.resilience.recovery import RecoveryManager
+from spotty_cloud.utils.monitoring.instance_monitor import InstanceMonitor
+from spotty_cloud.utils.cost.tracker import CostTracker
+from spotty_cloud.utils.aws.credentials import AWSCredentialManager
+from spotty_cloud.workloads.runners.dispatcher import WorkloadDispatcher
 
 logger = logging.getLogger(__name__)
 

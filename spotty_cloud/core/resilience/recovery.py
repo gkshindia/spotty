@@ -5,7 +5,8 @@ import time
 import threading
 from typing import Dict, List, Any, Optional
 
-from utils.backup.s3_sync import S3Backup
+# Import commented out for now as we don't have this module yet
+# from spotty_cloud.utils.backup.s3_sync import S3Backup
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,9 @@ class RecoveryManager:
         # Set max recovery time to 2 minutes as per POC requirements
         self.max_recovery_time = config.get('resilience', {}).get('max_recovery_time', 120)
         
-        self.s3_backup = S3Backup(config)
+        # S3Backup temporarily disabled since we don't have the module yet
+        # self.s3_backup = S3Backup(config)
+        self.s3_backup = None
         
         self.active_recoveries = {}
         self.backup_schedule = {}
@@ -172,6 +175,12 @@ class RecoveryManager:
             logger.info(f"Executing recovery {recovery_id} for instance {instance_id}")
             
             self._update_recovery(recovery_id, 'finding_backup', "Locating most recent backup")
+            
+            # Handle missing S3Backup
+            if self.s3_backup is None:
+                self._update_recovery(recovery_id, 'failed', "Backup service not available")
+                return
+                
             backup_info = self.s3_backup.find_latest_backup(instance_id)
             
             if not backup_info:

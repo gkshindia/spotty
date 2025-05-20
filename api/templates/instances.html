@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instances - SpottyCloud</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', path='/img/logo.svg') }}" alt="SpottyCloud Logo" width="30" height="30" class="d-inline-block align-top">
+                SpottyCloud
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/instances">Instances</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/workloads">Workloads</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/scripts">Scripts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/costs">Costs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Instance Management</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newInstanceModal">
+                <i class="bi bi-plus"></i> Request New Instance
+            </button>
+        </div>
+
+        <!-- Active Instances Panel -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Active Instances</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-instances">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Start Time</th>
+                                <th>Workloads</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-instances-table">
+                            <tr>
+                                <td colspan="6" class="text-center">Loading instances...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Instances Panel -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Pending Requests</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Instance Type</th>
+                                <th>Status</th>
+                                <th>Request Time</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-instances-table">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading pending requests...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Instance Modal -->
+    <div class="modal fade" id="newInstanceModal" tabindex="-1" aria-labelledby="newInstanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newInstanceModalLabel">Request New Instance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-instance-form">
+                        <div class="mb-3">
+                            <label for="instance-type" class="form-label">Instance Type</label>
+                            <select class="form-select" id="instance-type" required>
+                                <option value="" selected disabled>Select an instance type</option>
+                                <optgroup label="CPU Optimized">
+                                    <option value="c5.medium">c5.medium (2 vCPU, 4 GiB RAM)</option>
+                                    <option value="c5.large">c5.large (2 vCPU, 4 GiB RAM)</option>
+                                    <option value="t3.medium">t3.medium (2 vCPU, 4 GiB RAM)</option>
+                                </optgroup>
+                                <optgroup label="GPU Instances">
+                                    <option value="g4dn.large">g4dn.large (2 vCPU, 8 GiB RAM, 1 GPU)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="workload-type" class="form-label">Workload Type</label>
+                            <select class="form-select" id="workload-type">
+                                <option value="" selected>Any</option>
+                                <option value="cpu">CPU Workload</option>
+                                <option value="gpu">GPU Workload</option>
+                                <option value="edge">Edge Computing</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="request-instance-button">Request Instance</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instance Details Modal -->
+    <div class="modal fade" id="instanceDetailsModal" tabindex="-1" aria-labelledby="instanceDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instanceDetailsModalLabel">Instance Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="instance-details-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading instance details...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light p-3 mt-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 SpottyCloud</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>API Docs: <a href="/docs">Swagger UI</a> | <a href="/redoc">ReDoc</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load instances on page load
+            loadInstances();
+            
+            // Set up refresh interval
+            setInterval(loadInstances, 10000);
+            
+            // Set up event listeners
+            document.getElementById('request-instance-button').addEventListener('click', requestNewInstance);
+            
+            // Instance details event delegation
+            document.getElementById('active-instances-table').addEventListener('click', (event) => {
+                const instanceLink = event.target.closest('[data-instance-id]');
+                if (instanceLink) {
+                    showInstanceDetails(instanceLink.dataset.instanceId);
+                }
+            });
+        });
+        
+        // Load instances from API
+        function loadInstances() {
+            // Fetch active instances
+            fetchAPI('/instances').then(data => {
+                const activeInstancesTable = document.getElementById('active-instances-table');
+                
+                if (Object.keys(data).length === 0) {
+                    activeInstancesTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center">No active instances</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                let tableContent = '';
+                for (const [instanceId, details] of Object.entries(data)) {
+                    const statusClass = getStatusClass(details.status);
+                    const startTime = formatTimestamp(details.start_time);
+                    
+                    tableContent += `
+                        <tr>
+                            <td>
+                                <a href="#" data-instance-id="${instanceId}" data-bs-toggle="modal" data-bs-target="#instanceDetailsModal">
+                                    ${instanceId}
+                                </a>
+                            </td>
+                            <td>${details.type || 'Unknown'}</td>
+                            <td>
+                                <span class="badge bg-${statusClass}">
+                                    ${details.status}
+                                </span>
+                            </td>
+                            <td>${startTime}</td>
+                            <td>${details.workloads?.length || 0}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="terminateInstance('${instanceId}')">
+                                    Terminate
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                activeInstancesTable.innerHTML = tableContent;
+            }).catch(error => {
+                console.error('Error loading instances:', error);
+                document.getElementById('active-instances-table').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger">
+                            Error loading instances: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            // TODO: Add code to fetch and display pending instances
+        }
+        
+        // Get CSS class for status badge
+        function getStatusClass(status) {
+            switch (status) {
+                case 'ready':
+                    return 'success';
+                case 'initializing':
+                    return 'info';
+                case 'pending':
+                    return 'warning';
+                case 'terminated':
+                    return 'danger';
+                default:
+                    return 'secondary';
+            }
+        }
+        
+        // Request a new instance
+        function requestNewInstance() {
+            const instanceType = document.getElementById('instance-type').value;
+            const workloadType = document.getElementById('workload-type').value;
+            
+            if (!instanceType) {
+                showToast('Please select an instance type', 'warning');
+                return;
+            }
+            
+            // Disable button and show loading state
+            const button = document.getElementById('request-instance-button');
+            const originalText = button.innerText;
+            button.disabled = true;
+            button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Requesting...`;
+            
+            // Make API request
+            fetchAPI('/instances', {
+                method: 'POST',
+                body: JSON.stringify({
+                    instance_type: instanceType,
+                    workload_type: workloadType || null
+                })
+            }).then(response => {
+                // Close modal and show success message
+                const modal = bootstrap.Modal.getInstance(document.getElementById('newInstanceModal'));
+                modal.hide();
+                
+                showToast(`Instance request submitted. Request ID: ${response.request_id}`, 'success');
+                
+                // Reload instances after a short delay
+                setTimeout(loadInstances, 1000);
+            }).catch(error => {
+                showToast(`Error requesting instance: ${error.message}`, 'danger');
+            }).finally(() => {
+                // Reset button
+                button.disabled = false;
+                button.innerText = originalText;
+            });
+        }
+        
+        // Show instance details
+        function showInstanceDetails(instanceId) {
+            const detailsContainer = document.getElementById('instance-details-content');
+            
+            // Reset container with loading indicator
+            detailsContainer.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading instance details...</p>
+                </div>
+            `;
+            
+            // Fetch instance details
+            fetchAPI(`/instances/${instanceId}`).then(data => {
+                let workloadsHtml = '';
+                
+                if (data.workloads && data.workloads.length > 0) {
+                    workloadsHtml = `
+                        <h6>Workloads</h6>
+                        <ul class="list-group">
+                            ${data.workloads.map(id => `
+                                <li class="list-group-item">
+                                    <a href="/workloads/${id}">${id}</a>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    workloadsHtml = `<p>No workloads currently running on this instance.</p>`;
+                }
+                
+                // Format additional properties
+                const startTime = formatTimestamp(data.start_time);
+                const uptime = data.start_time ? formatDuration((Date.now() / 1000) - data.start_time) : 'N/A';
+                
+                detailsContainer.innerHTML = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Instance: ${instanceId}</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Type:</th>
+                                    <td>${data.type || 'Unknown'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge bg-${getStatusClass(data.status)}">
+                                            ${data.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Start Time:</th>
+                                    <td>${startTime}</td>
+                                </tr>
+                                <tr>
+                                    <th>Uptime:</th>
+                                    <td>${uptime}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Resource Utilization</h5>
+                            <div class="mb-3">
+                                <label class="form-label d-flex justify-content-between">
+                                    CPU
+                                    <span>45%</span>
+                                </label>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 45%" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label d-flex justify-content-between">
+                                    Memory
+                                    <span>62%</span>
+                                </label>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 62%" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label d-flex justify-content-between">
+                                    Disk
+                                    <span>28%</span>
+                                </label>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 28%" aria-valuenow="28" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>Workloads</h5>
+                    ${workloadsHtml}
+                `;
+            }).catch(error => {
+                detailsContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading instance details: ${error.message}
+                    </div>
+                `;
+            });
+        }
+        
+        // Terminate an instance
+        function terminateInstance(instanceId) {
+            if (!confirm(`Are you sure you want to terminate instance ${instanceId}?`)) {
+                return;
+            }
+            
+            fetchAPI(`/instances/${instanceId}`, {
+                method: 'DELETE'
+            }).then(data => {
+                showToast(`Instance ${instanceId} termination initiated`, 'success');
+                setTimeout(loadInstances, 1000);
+            }).catch(error => {
+                showToast(`Error terminating instance: ${error.message}`, 'danger');
+            });
+        }
+    </script>
+</body>
+</html>

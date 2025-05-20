@@ -1,0 +1,117 @@
+/* SpottyCloud Custom Styles */
+
+/* Custom color for highlighting */
+.bg-spot {
+    background-color: #17a2b8;
+}
+
+/* Dashboard card hover effect */
+.dash-card {
+    transition: transform 0.2s;
+}
+
+.dash-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-healthy {
+    background-color: #28a745;
+}
+
+.status-warning {
+    background-color: #ffc107;
+}
+
+.status-error {
+    background-color: #dc3545;
+}
+
+/* Enhanced table styles */
+.table-instances tbody tr {
+    cursor: pointer;
+}
+
+.table-instances tbody tr:hover {
+    background-color: rgba(23, 162, 184, 0.1);
+}
+
+/* Cost savings highlight */
+.savings-highlight {
+    color: #28a745;
+    font-weight: bold;
+}
+
+/* Header and footer refinements */
+.navbar-brand {
+    font-weight: 600;
+}
+
+footer {
+    font-size: 0.9rem;
+}
+
+/* Resource utilization charts */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Custom form styling */
+.form-control:focus {
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+}
+
+/* Workload type badges */
+.badge-cpu {
+    background-color: #6f42c1;
+}
+
+.badge-gpu {
+    background-color: #e83e8c;
+}
+
+.badge-edge {
+    background-color: #fd7e14;
+}
+
+/* Dashboard metrics card */
+.metric-card {
+    border-radius: 10px;
+    border-left: 4px solid #17a2b8;
+}
+
+/* Animation for loading states */
+.loading-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 200px;
+    }
+}

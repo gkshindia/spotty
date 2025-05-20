@@ -1,1 +1,56 @@
+# IDE
 .vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+spotty_cloud.log
+
+# Data and output
+data/
+output/
+tmp/
+
+# Docker
+.docker/
+
+# OS specific
+.DS_Store
+Thumbs.db

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', path='/img/logo.svg') }}" alt="SpottyCloud Logo" width="30" height="30" class="d-inline-block align-top">
+                SpottyCloud
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instances">Instances</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/workloads">Workloads</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/scripts">Scripts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/costs">Costs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Dashboard</h1>
+        
+        <!-- System Status -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">System Status</h5>
+                        <span class="badge rounded-pill {% if system_status.health == 'healthy' %}bg-success{% elif system_status.health == 'degraded' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ system_status.health|capitalize }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 text-muted">Active Instances</h6>
+                                        <h2 class="display-4">{{ system_status.active_instances }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 text-muted">Pending Instances</h6>
+                                        <h2 class="display-4">{{ system_status.pending_instances }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 text-muted">Running Workloads</h6>
+                                        <h2 class="display-4">{{ system_status.running_workloads }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 text-muted">Queued Workloads</h6>
+                                        <h2 class="display-4">{{ system_status.queued_workloads }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resource Monitoring Chart -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Resource Utilization</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="resourceChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Instances -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Active Instances</h5>
+                        <a href="/instances" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if instances|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Workloads</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for id, instance in instances.items() %}
+                                    <tr>
+                                        <td>{{ id }}</td>
+                                        <td>{{ instance.type }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if instance.status == 'ready' else 'secondary' }}">
+                                                {{ instance.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ instance.workloads|length }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" onclick="terminateInstance('{{ id }}')">
+                                                Terminate
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            No active instances. <a href="/instances" class="alert-link">Request a new instance</a>.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Workloads -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Workloads</h5>
+                        <a href="/workloads" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if workloads|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Instance</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for id, workload in workloads.items() %}
+                                    <tr>
+                                        <td>{{ workload.id }}</td>
+                                        <td>{{ workload.type }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if workload.status == 'completed' else 'warning' if workload.status == 'running' else 'secondary' }}">
+                                                {{ workload.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ workload.instance_id or '-' }}</td>
+                                        <td>{{ workload.duration|round(1) if workload.duration else '-' }}s</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            No workloads found. <a href="/workloads" class="alert-link">Submit a new workload</a>.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light p-3 mt-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 SpottyCloud</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>API Docs: <a href="/docs">Swagger UI</a> | <a href="/redoc">ReDoc</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Resource utilization chart
+            const ctx = document.getElementById('resourceChart').getContext('2d');
+            
+            // Generate some dummy data for now - this would be replaced with actual API data
+            const timestamps = [];
+            const now = new Date();
+            for (let i = 10; i >= 0; i--) {
+                const time = new Date(now - i * 60000);
+                timestamps.push(time.toLocaleTimeString());
+            }
+            
+            const cpuData = Array.from({length: 11}, () => Math.floor(Math.random() * 60) + 20);
+            const memoryData = Array.from({length: 11}, () => Math.floor(Math.random() * 40) + 30);
+            const gpuData = Array.from({length: 11}, () => Math.floor(Math.random() * 70) + 10);
+            
+            const resourceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timestamps,
+                    datasets: [
+                        {
+                            label: 'CPU Usage (%)',
+                            data: cpuData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Memory Usage (%)',
+                            data: memoryData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'GPU Usage (%)',
+                            data: gpuData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Function to update the chart with live data
+            function updateChart() {
+                fetch('/api/dashboard/resources')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Would update the chart with real data here
+                        // For now, just add random data points
+                        
+                        resourceChart.data.labels.shift();
+                        const time = new Date();
+                        resourceChart.data.labels.push(time.toLocaleTimeString());
+                        
+                        resourceChart.data.datasets[0].data.shift();
+                        resourceChart.data.datasets[0].data.push(Math.floor(Math.random() * 60) + 20);
+                        
+                        resourceChart.data.datasets[1].data.shift();
+                        resourceChart.data.datasets[1].data.push(Math.floor(Math.random() * 40) + 30);
+                        
+                        resourceChart.data.datasets[2].data.shift();
+                        resourceChart.data.datasets[2].data.push(Math.floor(Math.random() * 70) + 10);
+                        
+                        resourceChart.update();
+                    })
+                    .catch(error => console.error('Error updating resource data:', error));
+            }
+            
+            // Update the chart every 5 seconds
+            setInterval(updateChart, 5000);
+        });
+        
+        // Function to terminate an instance
+        function terminateInstance(instanceId) {
+            if (!confirm(`Are you sure you want to terminate instance ${instanceId}?`)) {
+                return;
+            }
+            
+            fetch(`/api/instances/${instanceId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(`Instance termination initiated: ${data.message}`);
+                // Reload the page after a short delay
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(error => {
+                console.error('Error terminating instance:', error);
+                alert('Error terminating instance. See console for details.');
+            });
+        }
+    </script>
+</body>
+</html>

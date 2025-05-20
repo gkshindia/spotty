@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workloads - SpottyCloud</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', path='/img/logo.svg') }}" alt="SpottyCloud Logo" width="30" height="30" class="d-inline-block align-top">
+                SpottyCloud
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/instances">Instances</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/workloads">Workloads</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/scripts">Scripts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/costs">Costs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Workload Management</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newWorkloadModal">
+                <i class="bi bi-plus"></i> Submit New Workload
+            </button>
+        </div>
+
+        <!-- Active Workloads Panel -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Active Workloads</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" id="refreshWorkloads">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="active-workloads-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Instance</th>
+                                <th>Started</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if workloads %}
+                                {% for id, workload in workloads.items() %}
+                                    {% if workload.status != "COMPLETED" and workload.status != "FAILED" %}
+                                    <tr>
+                                        <td><a href="#" class="workload-details" data-id="{{ id }}">{{ id[:8] }}...</a></td>
+                                        <td>{{ workload.type }}</td>
+                                        <td>
+                                            <span class="badge {% if workload.status == 'RUNNING' %}bg-success{% elif workload.status == 'PENDING' %}bg-warning{% elif workload.status == 'SCHEDULED' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                {{ workload.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ workload.instance_id if workload.instance_id else 'Not assigned' }}</td>
+                                        <td>{{ workload.start_time | default('Not started', true) }}</td>
+                                        <td>{{ workload.duration | default('N/A', true) }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary view-workload" data-id="{{ id }}">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger cancel-workload" data-id="{{ id }}">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No active workloads</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Workloads Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Completed Workloads</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="completed-workloads-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Instance</th>
+                                <th>Completed</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if workloads %}
+                                {% for id, workload in workloads.items() %}
+                                    {% if workload.status == "COMPLETED" or workload.status == "FAILED" %}
+                                    <tr>
+                                        <td><a href="#" class="workload-details" data-id="{{ id }}">{{ id[:8] }}...</a></td>
+                                        <td>{{ workload.type }}</td>
+                                        <td>
+                                            <span class="badge {% if workload.status == 'COMPLETED' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ workload.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ workload.instance_id if workload.instance_id else 'Not assigned' }}</td>
+                                        <td>{{ workload.end_time | default('N/A', true) }}</td>
+                                        <td>{{ workload.duration | default('N/A', true) }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary view-workload" data-id="{{ id }}">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-success download-results" data-id="{{ id }}">
+                                                    <i class="bi bi-download"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No completed workloads</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Workload Modal -->
+    <div class="modal fade" id="newWorkloadModal" tabindex="-1" aria-labelledby="newWorkloadModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newWorkloadModalLabel">Submit New Workload</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-workload-form">
+                        <div class="mb-3">
+                            <label for="workloadType" class="form-label">Workload Type</label>
+                            <select class="form-select" id="workloadType" required>
+                                <option value="">Select a workload type</option>
+                                <option value="training">Machine Learning Training</option>
+                                <option value="inference">Model Inference</option>
+                                <option value="data_processing">Data Processing</option>
+                                <option value="custom">Custom Script</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="resourceRequirements" class="form-label">Resource Requirements</label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="cpuCount" class="form-label">CPU Cores</label>
+                                    <input type="number" class="form-control" id="cpuCount" min="1" value="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="memorySize" class="form-label">Memory (GB)</label>
+                                    <input type="number" class="form-control" id="memorySize" min="1" value="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="gpuCount" class="form-label">GPU Count</label>
+                                    <input type="number" class="form-control" id="gpuCount" min="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="timeout" class="form-label">Timeout (seconds)</label>
+                            <input type="number" class="form-control" id="timeout" min="60" value="3600">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="workloadParams" class="form-label">Parameters (JSON)</label>
+                            <textarea class="form-control" id="workloadParams" rows="5" placeholder='{"param1": "value1", "param2": "value2"}'></textarea>
+                            <div class="form-text">Enter workload-specific parameters as a valid JSON object</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitWorkload">Submit Workload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workload Details Modal -->
+    <div class="modal fade" id="workloadDetailsModal" tabindex="-1" aria-labelledby="workloadDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="workloadDetailsModalLabel">Workload Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="workloadDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        // Load workloads on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Refresh button
+            document.getElementById('refreshWorkloads').addEventListener('click', function() {
+                loadWorkloads();
+            });
+
+            // Submit workload
+            document.getElementById('submitWorkload').addEventListener('click', function() {
+                submitNewWorkload();
+            });
+
+            // Set up event delegation for dynamically added elements
+            document.addEventListener('click', function(e) {
+                // View workload details
+                if (e.target.closest('.view-workload')) {
+                    const workloadId = e.target.closest('.view-workload').dataset.id;
+                    showWorkloadDetails(workloadId);
+                }
+
+                // Cancel workload
+                if (e.target.closest('.cancel-workload')) {
+                    const workloadId = e.target.closest('.cancel-workload').dataset.id;
+                    cancelWorkload(workloadId);
+                }
+
+                // Download results
+                if (e.target.closest('.download-results')) {
+                    const workloadId = e.target.closest('.download-results').dataset.id;
+                    downloadWorkloadResults(workloadId);
+                }
+            });
+        });
+
+        function loadWorkloads() {
+            fetchAPI('/api/workloads').then(data => {
+                updateWorkloadTables(data);
+            });
+        }
+
+        function updateWorkloadTables(workloads) {
+            // Implementation to update the active and completed workload tables
+            console.log('Updating workload tables with:', workloads);
+            // This would be implemented in main.js to update the DOM with the workload data
+        }
+
+        function submitNewWorkload() {
+            const form = document.getElementById('new-workload-form');
+            const workloadData = {
+                type: document.getElementById('workloadType').value,
+                resources: {
+                    cpu: parseInt(document.getElementById('cpuCount').value),
+                    memory: parseInt(document.getElementById('memorySize').value),
+                    gpu: parseInt(document.getElementById('gpuCount').value)
+                },
+                timeout: parseInt(document.getElementById('timeout').value),
+                params: JSON.parse(document.getElementById('workloadParams').value || '{}')
+            };
+            
+            fetchAPI('/api/workloads', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(workloadData)
+            }).then(response => {
+                // Handle response
+                if (response.id) {
+                    // Show success notification
+                    showNotification('Workload submitted successfully', 'success');
+                    // Close modal and refresh workload list
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('newWorkloadModal'));
+                    modal.hide();
+                    loadWorkloads();
+                }
+            }).catch(error => {
+                showNotification('Error submitting workload: ' + error, 'danger');
+            });
+        }
+
+        function showWorkloadDetails(workloadId) {
+            // Implementation to show workload details in a modal
+            fetchAPI(`/api/workloads/${workloadId}`).then(data => {
+                // Populate modal with workload details
+                const detailsContent = document.getElementById('workloadDetailsContent');
+                // Clear previous content
+                detailsContent.innerHTML = '';
+                
+                // Create details view
+                const detailsHTML = createWorkloadDetailsHTML(data);
+                detailsContent.innerHTML = detailsHTML;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('workloadDetailsModal'));
+                modal.show();
+            });
+        }
+
+        function createWorkloadDetailsHTML(workload) {
+            // Format workload details as HTML
+            return `
+                <div class="workload-details">
+                    <h6>Workload ID</h6>
+                    <p>${workload.id}</p>
+                    
+                    <h6>Type</h6>
+                    <p>${workload.type}</p>
+                    
+                    <h6>Status</h6>
+                    <p><span class="badge ${workload.status === 'COMPLETED' ? 'bg-success' : workload.status === 'FAILED' ? 'bg-danger' : workload.status === 'RUNNING' ? 'bg-primary' : 'bg-secondary'}">${workload.status}</span></p>
+                    
+                    <h6>Timeline</h6>
+                    <div class="workload-timeline">
+                        <p>Created: ${formatTimestamp(workload.create_time)}</p>
+                        <p>Started: ${workload.start_time ? formatTimestamp(workload.start_time) : 'Not started'}</p>
+                        <p>Completed: ${workload.end_time ? formatTimestamp(workload.end_time) : 'Not completed'}</p>
+                        <p>Duration: ${workload.duration ? formatDuration(workload.duration) : 'N/A'}</p>
+                    </div>
+                    
+                    <h6>Resources</h6>
+                    <p>CPU: ${workload.resources.cpu}, Memory: ${workload.resources.memory} GB, GPU: ${workload.resources.gpu}</p>
+                    
+                    <h6>Instance</h6>
+                    <p>${workload.instance_id || 'Not assigned'}</p>
+                    
+                    ${workload.result ? `<h6>Result</h6><pre class="workload-result">${JSON.stringify(workload.result, null, 2)}</pre>` : ''}
+                </div>
+            `;
+        }
+
+        function cancelWorkload(workloadId) {
+            if (confirm('Are you sure you want to cancel this workload?')) {
+                fetchAPI(`/api/workloads/${workloadId}/cancel`, {
+                    method: 'POST'
+                }).then(response => {
+                    showNotification('Workload cancelled successfully', 'success');
+                    loadWorkloads();
+                }).catch(error => {
+                    showNotification('Error cancelling workload: ' + error, 'danger');
+                });
+            }
+        }
+
+        function downloadWorkloadResults(workloadId) {
+            fetchAPI(`/api/workloads/${workloadId}/results`).then(data => {
+                // Create a download link for the results
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `workload_${workloadId}_results.json`;
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            });
+        }
+
+        // Helper functions
+        function formatTimestamp(timestamp) {
+            return timestamp ? new Date(timestamp * 1000).toLocaleString() : 'N/A';
+        }
+        
+        function formatDuration(duration) {
+            return `${Math.floor(duration / 60)}m ${Math.floor(duration % 60)}s`;
+        }
+    </script>
+</body>
+</html>

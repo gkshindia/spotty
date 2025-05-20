@@ -12,7 +12,7 @@ import os
 
 import boto3
 from botocore.exceptions import ClientError
-from utils.aws.credentials import AWSCredentialManager
+from spotty_cloud.utils.aws.credentials import AWSCredentialManager
 
 logger = logging.getLogger(__name__)
 

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - MIN_INSTANCES=1
+      - MAX_INSTANCES=3
+      - INSTANCE_POOL_SIZE=2
+    command: python run_api.py --reload --log-level=debug
+    restart: unless-stopped
+
+  # Optional: Add a Redis service for caching or message queue
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   restart: unless-stopped
+
+volumes:
+  redis-data:
