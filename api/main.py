@@ -14,6 +14,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing import Optional
 import uvicorn
 
@@ -132,6 +133,22 @@ async def shutdown_event():
         logger.info("Shutting down SpottyCloud orchestrator...")
         api.dependencies.orchestrator.stop()
         logger.info("SpottyCloud orchestrator stopped")
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler to provide better error responses
+    """
+    logger.exception(f"Unhandled exception: {str(exc)}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "An internal server error occurred",
+            "type": type(exc).__name__,
+            "message": str(exc)
+        }
+    )
 
 # Run the application directly when script is executed
 if __name__ == "__main__":

@@ -483,3 +483,19 @@ class WorkloadDispatcher:
             return time.time() - start_time
             
         return end_time - start_time
+    
+    def get_count_by_status(self, status: str) -> int:
+        """
+        Get the count of workloads with a specific status
+        
+        Args:
+            status: Status to count ('pending', 'scheduled', 'running', 'completed', 'failed')
+            
+        Returns:
+            Count of workloads with the specified status
+        """
+        count = 0
+        for workload_id, workload in self.workloads.items():
+            if workload.get('status', '').lower() == status.lower():
+                count += 1
+        return count
