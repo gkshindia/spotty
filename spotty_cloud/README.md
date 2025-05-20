@@ -84,7 +84,7 @@ spotty_cloud/
 
 The orchestrator is the central component of SpottyCloud, responsible for:
 
-- Managing a pool of AWS Spot Instances (between 10-20 servers)
+- Managing a pool of AWS Spot Instances (around 3-4 servers)
 - Distributing workloads based on their resource requirements
 - Monitoring instance health and handling failures
 - Scaling the instance pool up or down based on workload demand

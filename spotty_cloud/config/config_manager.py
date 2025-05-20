@@ -4,7 +4,7 @@
 import os
 import yaml
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Optional
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -31,12 +31,12 @@ class ConfigManager:
         self.config = self._load_main_config()
         self.templates = self._load_templates()
     
-    def _load_main_config(self) -> Dict[str, Any]:
+    def _load_main_config(self) -> dict[str, Any]:
         """
         Load the main configuration file
         
         Returns:
-            Dict: Configuration dictionary
+            dict: Configuration dictionary
         """
         try:
             with open(self.config_path, 'r') as f:
@@ -48,12 +48,12 @@ class ConfigManager:
             logger.warning("Using default configuration")
             return self._get_default_config()
     
-    def _get_default_config(self) -> Dict[str, Any]:
+    def _get_default_config(self) -> dict[str, Any]:
         """
         Get default configuration
         
         Returns:
-            Dict: Default configuration dictionary
+            dict: Default configuration dictionary
         """
         return {
             'system': {
@@ -91,12 +91,12 @@ class ConfigManager:
             }
         }
     
-    def _load_templates(self) -> Dict[str, Any]:
+    def _load_templates(self) -> dict[str, Any]:
         """
         Load all workload templates from the templates directory
         
         Returns:
-            Dict: Dictionary of template name -> template config
+            dict: Dictionary of template name -> template config
         """
         templates = {}
         template_dir = Path(self.templates_dir)
@@ -121,7 +121,7 @@ class ConfigManager:
         logger.info(f"Loaded {len(templates)} templates")
         return templates
     
-    def get_template(self, template_name: str) -> Optional[Dict[str, Any]]:
+    def get_template(self, template_name: str) -> Optional[dict[str, Any]]:
         """
         Get a specific template by name
         
@@ -129,61 +129,61 @@ class ConfigManager:
             template_name: Name of the template
             
         Returns:
-            Dict: Template configuration or None if not found
+            dict: Template configuration or None if not found
         """
         return self.templates.get(template_name)
     
-    def get_all_templates(self) -> Dict[str, Any]:
+    def get_all_templates(self) -> dict[str, Any]:
         """
         Get all available templates
         
         Returns:
-            Dict: Dictionary of all templates
+            dict: Dictionary of all templates
         """
         return self.templates
     
-    def get_system_config(self) -> Dict[str, Any]:
+    def get_system_config(self) -> dict[str, Any]:
         """
         Get system configuration
         
         Returns:
-            Dict: System configuration
+            dict: System configuration
         """
         return self.config.get('system', {})
     
-    def get_aws_config(self) -> Dict[str, Any]:
+    def get_aws_config(self) -> dict[str, Any]:
         """
         Get AWS configuration
         
         Returns:
-            Dict: AWS configuration
+            dict: AWS configuration
         """
         return self.config.get('aws', {})
     
-    def get_workload_config(self) -> Dict[str, Any]:
+    def get_workload_config(self) -> dict[str, Any]:
         """
         Get workload configuration
         
         Returns:
-            Dict: Workload configuration
+            dict: Workload configuration
         """
         return self.config.get('workloads', {})
     
-    def get_resilience_config(self) -> Dict[str, Any]:
+    def get_resilience_config(self) -> dict[str, Any]:
         """
         Get resilience configuration
         
         Returns:
-            Dict: Resilience configuration
+            dict: Resilience configuration
         """
         return self.config.get('resilience', {})
     
-    def get_monitoring_config(self) -> Dict[str, Any]:
+    def get_monitoring_config(self) -> dict[str, Any]:
         """
         Get monitoring configuration
         
         Returns:
-            Dict: Monitoring configuration
+            dict: Monitoring configuration
         """
         return self.config.get('monitoring', {})
     
@@ -219,7 +219,7 @@ class ConfigManager:
         # Fallback
         return 't3.medium'
     
-    def update_config(self, config_updates: Dict[str, Any]) -> None:
+    def update_config(self, config_updates: dict[str, Any]) -> None:
         """
         Update specific configuration settings
         
@@ -237,7 +237,7 @@ class ConfigManager:
         except Exception as e:
             logger.error(f"Failed to save configuration to {self.config_path}: {str(e)}")
     
-    def _deep_update(self, d: Dict[str, Any], u: Dict[str, Any]) -> None:
+    def _deep_update(self, d: dict[str, Any], u: dict[str, Any]) -> None:
         """
         Deep update dictionary d with values from dictionary u
         

@@ -29,9 +29,9 @@ class OrchestratorManager:
             config: Configuration dictionary
         """
         self.config = config
-        self.instance_pool_size = config.get('orchestrator', {}).get('instance_pool_size', 10)
+        self.instance_pool_size = config.get('orchestrator', {}).get('instance_pool_size', 5)
         self.min_instances = config.get('orchestrator', {}).get('min_instances', 3)
-        self.max_instances = config.get('orchestrator', {}).get('max_instances', 20)
+        self.max_instances = config.get('orchestrator', {}).get('max_instances', 5)
         self.polling_interval = config.get('orchestrator', {}).get('polling_interval', 30)
         
         self.aws_credentials = AWSCredentialManager(config.get('aws', {}))

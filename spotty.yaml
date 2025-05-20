@@ -17,13 +17,13 @@ containers:
     ports:
       - containerPort: 8888
         hostPort: 8888
-    # Mount volumes to persist data
+
     volumeMounts:
       - name: workspace
         mountPath: /workspace
       - name: data
         mountPath: /data
-    # Set up environment
+
     commands: |
       echo "FFmpeg container ready for video encoding tasks"
       
@@ -33,11 +33,11 @@ containers:
     ports:
       - containerPort: 8888
         hostPort: 8888
-    # Mount volumes to persist data
+
     volumeMounts:
       - name: workspace
         mountPath: /workspace
-    # Set up environment
+
     commands: |
       jupyter notebook --allow-root --ip=0.0.0.0 --no-browser
 
@@ -45,16 +45,16 @@ instances:
   - name: aws-gpu
     provider: aws
     parameters:
-      region: us-east-1  # Change to your preferred region
-      instanceType: g4dn.xlarge  # Smaller GPU instance for video encoding
+      region: ap-south-1
+      instanceType: g4dn.large
       spotInstance: true
       maxPrice: 0.5
       volumes:
         - name: workspace
-          size: 10
+          size: 1
           mountDir: /workspace
         - name: data
-          size: 20
+          size: 1
           mountDir: /data
       docker:
         image: nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04
@@ -63,16 +63,16 @@ instances:
   - name: aws-cpu
     provider: aws
     parameters:
-      region: us-east-1  # Change to your preferred region
-      instanceType: c5.large  # Smaller CPU compute-optimized instance
+      region: ap-south-1
+      instanceType: c5.medium
       spotInstance: true
       maxPrice: 0.15
       volumes:
         - name: workspace
-          size: 10
+          size: 1
           mountDir: /workspace
         - name: data
-          size: 20
+          size: 1
           mountDir: /data
       ports: [8888]
 
