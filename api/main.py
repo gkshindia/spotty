@@ -37,7 +37,7 @@ from spotty_cloud.utils.aws.credentials import AWSCredentialManager
 import api.dependencies
 
 # Import API routers
-from api.routers import instances, workloads, dashboard, scripts, costs
+from api.routers import instances, workloads, dashboard, costs
 
 # Configure logging
 logging.basicConfig(
@@ -90,14 +90,12 @@ from api.dependencies import get_orchestrator
 app.include_router(dashboard.router)
 app.include_router(instances.router)
 app.include_router(workloads.router)
-app.include_router(scripts.router)
 app.include_router(costs.router)
 
 # Include web interface routers
 app.include_router(dashboard.web_router)
 app.include_router(instances.web_router)
 app.include_router(workloads.web_router)
-app.include_router(scripts.web_router)
 app.include_router(costs.web_router)
 
 # Root endpoint (main dashboard)

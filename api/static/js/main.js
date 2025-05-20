@@ -208,5 +208,92 @@ function initCostsPage() {
     // This would be implemented when we have the costs page template
 }
 
+/**
+ * Load available templates from the API
+ * @param {string} selectElementId - ID of the select element to populate
+ * @returns {Promise} - Promise that resolves when templates are loaded
+ */
+async function loadTemplates(selectElementId) {
+    try {
+        const templates = await fetchAPI('/workloads/templates');
+        const selectElement = document.getElementById(selectElementId);
+        
+        // Clear existing options, keeping only the first one
+        while (selectElement.options.length > 1) {
+            selectElement.remove(1);
+        }
+        
+        // Add template options
+        for (const [id, template] of Object.entries(templates)) {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = `${template.name} - ${template.description}`;
+            selectElement.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error loading templates:', error);
+        showToast('Failed to load templates', 'danger');
+    }
+}
+
+/**
+ * Fetch template details and populate form fields
+ * @param {string} templateId - ID of the template to fetch
+ * @param {Object} fieldMapping - Mapping of template properties to form field IDs
+ * @returns {Promise} - Promise that resolves when form fields are populated
+ */
+async function fetchTemplateDetails(templateId, fieldMapping = {}) {
+    try {
+        const template = await fetchAPI(`/workloads/templates/${templateId}`);
+        
+        // Default field mapping if not provided
+        const defaultMapping = {
+            'cpu': 'cpuCount',
+            'memory': 'memorySize', 
+            'gpu': 'gpuCount',
+            'timeout': 'timeout',
+            'parameters': 'workloadParams'
+        };
+        
+        const mapping = { ...defaultMapping, ...fieldMapping };
+        
+        // Set resource fields
+        if (template.resources) {
+            if (template.resources.cpu && document.getElementById(mapping.cpu)) {
+                document.getElementById(mapping.cpu).value = template.resources.cpu;
+            }
+            
+            if (template.resources.memory && document.getElementById(mapping.memory)) {
+                document.getElementById(mapping.memory).value = template.resources.memory;
+            }
+            
+            if (template.resources.gpu && document.getElementById(mapping.gpu)) {
+                document.getElementById(mapping.gpu).value = template.resources.gpu;
+            }
+        }
+        
+        // Set timeout
+        if (template.timeout && document.getElementById(mapping.timeout)) {
+            document.getElementById(mapping.timeout).value = template.timeout;
+        }
+        
+        // Set parameters
+        if (template.parameters && document.getElementById(mapping.parameters)) {
+            const paramsObj = {};
+            template.parameters.forEach(param => {
+                if (param.name && param.default !== undefined) {
+                    paramsObj[param.name] = param.default;
+                }
+            });
+            document.getElementById(mapping.parameters).value = JSON.stringify(paramsObj, null, 2);
+        }
+        
+        return template;
+    } catch (error) {
+        console.error(`Error fetching template ${templateId}:`, error);
+        showToast(`Could not load template details: ${error.message}`, 'warning');
+    }
+}
+
 // Initialize the page when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initPage);
