@@ -46,8 +46,16 @@ class AWSCredentialManager:
         """
         # Try to initialize session
         try:
-            # Check if credentials are provided in config
-            if 'aws_access_key_id' in self.config and 'aws_secret_access_key' in self.config:
+            # First check for environment variables (highest priority)
+            if os.environ.get('AWS_ACCESS_KEY_ID') and os.environ.get('AWS_SECRET_ACCESS_KEY'):
+                logger.info("Using AWS credentials from environment variables")
+                self.session = boto3.Session(
+                    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                    region_name=self.region
+                )
+            # Then check if credentials are provided in config
+            elif 'aws_access_key_id' in self.config and 'aws_secret_access_key' in self.config:
                 self.session = boto3.Session(
                     aws_access_key_id=self.config['aws_access_key_id'],
                     aws_secret_access_key=self.config['aws_secret_access_key'],

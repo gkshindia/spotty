@@ -10,6 +10,16 @@ from pathlib import Path
 root_path = Path(__file__).parent.parent
 sys.path.insert(0, str(root_path))
 
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    env_path = os.path.join(root_path, '.env')
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+        print(f"API: Loaded environment variables from {env_path}")
+except ImportError:
+    print("python-dotenv not installed, skipping .env loading")
+
 from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

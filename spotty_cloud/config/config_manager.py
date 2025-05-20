@@ -55,17 +55,24 @@ class ConfigManager:
         Returns:
             dict: Default configuration dictionary
         """
+        # Get configuration from environment variables if available
+        log_level = os.environ.get('LOG_LEVEL', 'INFO')
+        aws_region = os.environ.get('AWS_DEFAULT_REGION', 'ap-south-1')
+        dashboard_port = int(os.environ.get('DASHBOARD_PORT', '8080'))
+        min_instances = int(os.environ.get('MIN_INSTANCES', '1'))
+        max_instances = int(os.environ.get('MAX_INSTANCES', '10'))
+        
         return {
             'system': {
-                'log_level': 'INFO',
-                'dashboard_port': 8080,
-                'min_instances': 1,
-                'max_instances': 10,
-                'scaling_cooldown': 300  # 5 minutes
+                'log_level': log_level,
+                'dashboard_port': dashboard_port,
+                'min_instances': min_instances,
+                'max_instances': max_instances,
+                'scaling_cooldown': int(os.environ.get('SCALING_COOLDOWN', '300'))  # 5 minutes
             },
             'aws': {
-                'region': 'ap-south-1',
-                'default_image_id': 'ami-0c55b159cbfafe1f0',  # Amazon Linux 2
+                'region': aws_region,
+                'default_image_id': os.environ.get('AWS_DEFAULT_IMAGE_ID', 'ami-0c55b159cbfafe1f0'),  # Amazon Linux 2
                 'instance_types': {
                     'cpu': ['c5.large', 't3.medium'],
                     'gpu': ['g4dn.xlarge']

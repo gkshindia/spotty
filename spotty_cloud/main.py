@@ -8,12 +8,23 @@ import logging
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    env_path = os.path.join(project_root, '.env')
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+        print(f"Loaded environment variables from {env_path}")
+except ImportError:
+    print("python-dotenv not installed, skipping .env loading")
 
 from core.orchestrator.manager import OrchestratorManager
-from utils.monitoring.system_monitor import SystemMonitor
+from utils.monitoring.instance_monitor import InstanceMonitor
 from dashboard.backend.server import start_dashboard_server
-from config.loader import ConfigLoader
+from config.config_manager import ConfigLoader
 
 # Configure logging
 logging.basicConfig(
@@ -70,7 +81,7 @@ def main():
     try:
         # Start system monitoring
         logger.info("Starting system monitoring")
-        system_monitor = SystemMonitor(config)
+        system_monitor = InstanceMonitor(config)
         system_monitor.start()
         
         # Initialize and start orchestrator

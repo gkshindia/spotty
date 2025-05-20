@@ -33,11 +33,18 @@ def main():
     """
     args = parse_args()
     
-    # Set environment variables from .env file if provided
+    # Import dotenv at the top to ensure it's available
+    from dotenv import load_dotenv
+    
+    # Set environment variables from .env file if provided via command line
     if args.env_file and os.path.exists(args.env_file):
-        from dotenv import load_dotenv
         print(f"Loading environment variables from {args.env_file}")
         load_dotenv(args.env_file)
+    # If no env file specified, try to load from default .env in project root
+    elif os.path.exists(os.path.join(Path(__file__).parent, '.env')):
+        default_env = os.path.join(Path(__file__).parent, '.env')
+        print(f"Loading environment variables from default .env file: {default_env}")
+        load_dotenv(default_env)
     
     # Ensure spotty_cloud is in the Python path
     sys.path.insert(0, str(Path(__file__).parent))
