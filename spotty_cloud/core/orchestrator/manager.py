@@ -31,7 +31,7 @@ class OrchestratorManager:
         self.config = config
         self.instance_pool_size = config.get('orchestrator', {}).get('instance_pool_size', 5)
         self.min_instances = config.get('orchestrator', {}).get('min_instances', 3)
-        self.max_instances = config.get('orchestrator', {}).get('max_instances', 5)
+        self.max_instances = config.get('orchestrator', {}).get('max_instances', 3)
         self.polling_interval = config.get('orchestrator', {}).get('polling_interval', 30)
         
         self.aws_credentials = AWSCredentialManager(config.get('aws', {}))
@@ -337,7 +337,9 @@ class OrchestratorManager:
                 self._request_replacement_instance()
                 
         elif current_count > target_instances + 2:
+            instances_to_remove = current_count - target_instances
             logger.info(f"Scaling down: Target is {target_instances}, current is {current_count}")
+            self._terminate_excess_instances(instances_to_remove)
             
     def _distribute_workloads(self):
         """
@@ -375,3 +377,92 @@ class OrchestratorManager:
                 
             except queue.Empty:
                 break
+                
+    def _terminate_excess_instances(self, count: int):
+        """
+        Terminate excess instances for scaling down
+        
+        Args:
+            count: Number of instances to terminate
+        """
+        if count <= 0:
+            return
+            
+        # Prioritize instances with no workloads
+        idle_instances = []
+        busy_instances = []
+        
+        for instance_id, instance_details in self.active_instances.items():
+            if instance_id in self.instance_workloads and len(self.instance_workloads[instance_id]) > 0:
+                # Instance has assigned workloads
+                busy_instances.append((instance_id, instance_details))
+            else:
+                # Idle instance
+                idle_instances.append((instance_id, instance_details))
+        
+        # Sort idle instances by start time (oldest first)
+        idle_instances.sort(key=lambda x: x[1].get('start_time', 0))
+        
+        # Terminate instances up to count
+        instances_terminated = 0
+        
+        # First terminate idle instances
+        for instance_id, _ in idle_instances:
+            if instances_terminated >= count:
+                break
+                
+            logger.info(f"Terminating idle instance {instance_id} for scaling down")
+            if self._terminate_instance(instance_id):
+                instances_terminated += 1
+        
+        # If needed, terminate busy instances too (starting with instances with fewest workloads)
+        if instances_terminated < count:
+            # Sort busy instances by number of workloads (ascending)
+            busy_instances.sort(key=lambda x: len(self.instance_workloads.get(x[0], [])))
+            
+            remaining = count - instances_terminated
+            for instance_id, _ in busy_instances[:remaining]:
+                logger.info(f"Terminating instance {instance_id} with workloads for scaling down")
+                if self._terminate_instance(instance_id):
+                    instances_terminated += 1
+        
+        logger.info(f"Terminated {instances_terminated} instances for scaling down")
+    
+    def _terminate_instance(self, instance_id: str) -> bool:
+        """
+        Terminate an instance and clean up related resources
+        
+        Args:
+            instance_id: ID of the instance to terminate
+            
+        Returns:
+            success: Boolean indicating success
+        """
+        if instance_id not in self.active_instances:
+            logger.warning(f"Cannot terminate: Instance {instance_id} not found")
+            return False
+            
+        # Terminate instance through instance manager
+        success = self.instance_manager.terminate_instance(instance_id)
+        if not success:
+            logger.error(f"Failed to terminate instance {instance_id}")
+            return False
+            
+        # Handle affected workloads
+        affected_workloads = []
+        if instance_id in self.instance_workloads:
+            affected_workloads = self.workload_dispatcher.handle_instance_failure(instance_id)
+            
+        # Deregister from monitoring
+        self.instance_monitor.deregister_instance(instance_id)
+        
+        # Deregister from cost tracking
+        self.cost_tracker.deregister_instance(instance_id)
+        
+        # Remove from active instances
+        instance_details = self.active_instances.pop(instance_id, {})
+        
+        # Log termination
+        logger.info(f"Instance {instance_id} terminated ({len(affected_workloads)} affected workloads)")
+        
+        return True
