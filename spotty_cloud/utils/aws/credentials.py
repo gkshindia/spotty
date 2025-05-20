@@ -35,7 +35,7 @@ class AWSCredentialManager:
         if not region:
             region = os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION')
         
-        return region or 'us-west-2'
+        return region or 'ap-south-1'
     
     def _initialize_credentials(self) -> bool:
         """

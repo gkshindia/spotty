@@ -6,7 +6,7 @@ system:
   data_dir: data # Relative to project root
 
 aws:
-  region: us-west-2
+  region: ap-south-1
   # Access keys are not stored here - use AWS CLI config, environment variables, or IAM roles
   spot:
     max_price_multiplier: 1.2  # Maximum price as % of on-demand price

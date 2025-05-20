@@ -64,13 +64,13 @@ class ConfigManager:
                 'scaling_cooldown': 300  # 5 minutes
             },
             'aws': {
-                'region': 'us-west-2',
+                'region': 'ap-south-1',
                 'default_image_id': 'ami-0c55b159cbfafe1f0',  # Amazon Linux 2
                 'instance_types': {
                     'cpu': ['c5.large', 't3.medium'],
                     'gpu': ['g4dn.xlarge']
                 },
-                'availability_zones': ['us-west-2a', 'us-west-2b', 'us-west-2c'],
+                'availability_zones': ['ap-south-1a', 'ap-south-1b', 'ap-south-1c'],
                 'max_price_multiplier': 1.2  # Max price as multiplier of on-demand
             },
             'workloads': {
