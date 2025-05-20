@@ -39,12 +39,23 @@ def main():
     # Set environment variables from .env file if provided via command line
     if args.env_file and os.path.exists(args.env_file):
         print(f"Loading environment variables from {args.env_file}")
-        load_dotenv(args.env_file)
+        load_dotenv(args.env_file, override=True)
     # If no env file specified, try to load from default .env in project root
     elif os.path.exists(os.path.join(Path(__file__).parent, '.env')):
         default_env = os.path.join(Path(__file__).parent, '.env')
         print(f"Loading environment variables from default .env file: {default_env}")
-        load_dotenv(default_env)
+        load_dotenv(default_env, override=True)
+        
+    # Verify AWS credentials are loaded
+    aws_keys_present = all(os.environ.get(key) for key in [
+        'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_DEFAULT_REGION'
+    ])
+    if aws_keys_present:
+        print("AWS credentials loaded successfully")
+        if os.environ.get('AWS_SESSION_TOKEN'):
+            print("Using temporary credentials with session token")
+    else:
+        print("WARNING: AWS credentials not fully loaded - some features may not work")
     
     # Ensure spotty_cloud is in the Python path
     sys.path.insert(0, str(Path(__file__).parent))

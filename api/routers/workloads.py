@@ -128,18 +128,21 @@ async def get_workload_templates():
     
     try:
         # Path to templates directory - trying multiple possible locations
+        project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
         possible_template_dirs = [
             # Standard location
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                         "spotty_cloud", "workloads", "templates"),
+            os.path.join(project_root, "spotty_cloud", "workloads", "templates"),
             # Config templates location
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                         "spotty_cloud", "config", "templates"),
+            os.path.join(project_root, "spotty_cloud", "config", "templates"),
             # Local templates
             os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates"),
             # Direct path for Docker environments
             "/app/spotty_cloud/workloads/templates"
         ]
+        
+        # Log all possible template directories for debugging
+        print(f"Project root is: {project_root}")
+        print(f"All possible template directories: {possible_template_dirs}")
         
         template_found = False
         for templates_dir in possible_template_dirs:
@@ -148,6 +151,7 @@ async def get_workload_templates():
             # List YAML files in templates directory
             if os.path.exists(templates_dir):
                 print(f"Found templates directory: {templates_dir}")
+                print(f"Directory contents: {os.listdir(templates_dir)}")
                 
                 for filename in os.listdir(templates_dir):
                     if filename.endswith(('.yaml', '.yml')):
@@ -285,14 +289,36 @@ async def upload_workload_template(
 @router.get("/templates/{template_id}", response_model=Dict[str, Any])
 async def get_workload_template_detail(template_id: str):
     """Get details of a specific template by ID"""
-    # Path to templates directory
-    templates_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
-                              "spotty_cloud", "workloads", "templates")
+    # Get project root for absolute paths
+    project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
     
-    template_path = os.path.join(templates_dir, f"{template_id}.yaml")
-    if not os.path.exists(template_path):
-        template_path = os.path.join(templates_dir, f"{template_id}.yml")
-        if not os.path.exists(template_path):
+    # Try multiple template directories
+    possible_template_dirs = [
+        # Standard location
+        os.path.join(project_root, "spotty_cloud", "workloads", "templates"),
+        # Config templates location
+        os.path.join(project_root, "spotty_cloud", "config", "templates"),
+        # Local templates
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+    ]
+    
+    # Try to find the template in any of the directories
+    template_path = None
+    for templates_dir in possible_template_dirs:
+        # Try both .yaml and .yml extensions
+        yaml_path = os.path.join(templates_dir, f"{template_id}.yaml")
+        yml_path = os.path.join(templates_dir, f"{template_id}.yml")
+        
+        if os.path.exists(yaml_path):
+            template_path = yaml_path
+            print(f"Found template at {template_path}")
+            break
+        elif os.path.exists(yml_path):
+            template_path = yml_path
+            print(f"Found template at {template_path}")
+            break
+    
+    # If no template file found
             # If template file not found, check if it's one of our default templates
             templates = await get_workload_templates()
             if template_id in templates:

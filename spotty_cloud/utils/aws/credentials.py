@@ -49,11 +49,17 @@ class AWSCredentialManager:
             # First check for environment variables (highest priority)
             if os.environ.get('AWS_ACCESS_KEY_ID') and os.environ.get('AWS_SECRET_ACCESS_KEY'):
                 logger.info("Using AWS credentials from environment variables")
-                self.session = boto3.Session(
-                    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-                    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                    region_name=self.region
-                )
+                session_kwargs = {
+                    'aws_access_key_id': os.environ.get('AWS_ACCESS_KEY_ID'),
+                    'aws_secret_access_key': os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                    'region_name': self.region
+                }
+                # Include session token if present (for temporary credentials)
+                if os.environ.get('AWS_SESSION_TOKEN'):
+                    logger.info("Using temporary credentials with session token")
+                    session_kwargs['aws_session_token'] = os.environ.get('AWS_SESSION_TOKEN')
+                    
+                self.session = boto3.Session(**session_kwargs)
             # Then check if credentials are provided in config
             elif 'aws_access_key_id' in self.config and 'aws_secret_access_key' in self.config:
                 self.session = boto3.Session(
@@ -181,8 +187,15 @@ class AWSCredentialManager:
             Dict: Instance identity document or empty dict if not running on EC2
         """
         try:
+            # Check if requests is available
+            try:
+                import requests
+            except ImportError:
+                # If requests is not available, add a message and return empty dict
+                logger.warning("requests module not available, cannot check EC2 instance metadata")
+                return {}
+                
             # This URL is only accessible from within an EC2 instance
-            import requests
             response = requests.get(
                 'http://169.254.169.254/latest/dynamic/instance-identity/document',
                 timeout=2  # Short timeout to avoid hanging
