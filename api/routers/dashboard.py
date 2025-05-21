@@ -3,7 +3,6 @@
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
-from typing import Dict, Any
 
 from api.dependencies import get_orchestrator
 from spotty_cloud.core.orchestrator.manager import OrchestratorManager

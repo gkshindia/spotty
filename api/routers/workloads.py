@@ -8,13 +8,12 @@ from fastapi import (
     Depends,
     HTTPException,
     status,
-    Body,
     Request,
     File,
     UploadFile,
     Form,
 )
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from pydantic import BaseModel
 
 # Import yaml with error handling
@@ -22,7 +21,6 @@ try:
     import yaml
 except ImportError:
     # Add PyYAML to requirements.txt if needed
-    import json
 
     yaml = None
     print("WARNING: PyYAML not installed, using JSON as fallback for templates")

@@ -3,7 +3,7 @@
 import logging
 import time
 import threading
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 # Import commented out for now as we don't have this module yet
 # from spotty_cloud.utils.backup.s3_sync import S3Backup

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Router for instance management endpoints
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates

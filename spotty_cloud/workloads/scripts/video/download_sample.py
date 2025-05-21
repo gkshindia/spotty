@@ -4,7 +4,6 @@
 import os
 import argparse
 import urllib.request
-import sys
 
 # Define sample videos with name, URL, and approximate size
 SAMPLE_VIDEOS = {

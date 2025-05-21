@@ -2,9 +2,7 @@
 # Router for cost tracking endpoints
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Request
-from typing import Dict, Any, List, Optional
-import time
-from datetime import datetime, timedelta
+from typing import Dict, Any, List
 from fastapi.templating import Jinja2Templates
 
 from api.dependencies import get_orchestrator
